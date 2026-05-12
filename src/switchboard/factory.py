@@ -1,6 +1,7 @@
 from switchboard.config import settings
 from switchboard.connectors.blob_storage.localfs import LocalFSConnector
 from switchboard.connectors.db_engines.duckdb import DuckDBConnector
+from switchboard.connectors.db_engines.postgres import PostgresConnector
 
 class Switchboard:
     @staticmethod
@@ -14,5 +15,6 @@ class Switchboard:
     def get_db():
         if settings.DB_TYPE == "DUCKDB":
             return DuckDBConnector(settings.DUCKDB_PATH)
-        # We can add Postgres/Snowflake logic here later
+        if settings.DB_TYPE == "POSTGRES":
+            return PostgresConnector(settings.POSTGRES_URL)
         raise ValueError(f"Unsupported DB type: {settings.DB_TYPE}")
