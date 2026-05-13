@@ -22,5 +22,8 @@ def test_db_write_and_read():
     assert result_df["val"].iloc[0] == "A"
     print("##################### Database read successful.")
     
+    # Clean up
+    db.execute("DROP TABLE IF EXISTS test_table")
+    
 if __name__ == "__main__":
     test_db_write_and_read()
