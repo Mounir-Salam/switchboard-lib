@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     
     # Switches
     STORAGE_TYPE: Literal["LOCAL", "MINIO", "S3"] = "LOCAL"
-    DB_TYPE: Literal["DUCKDB", "POSTGRES", "CLICKHOUSE"] = "DUCKDB"
+    DB_TYPE: Literal["DUCKDB", "POSTGRES", "CLICKHOUSE", "BIGQUERY"] = "DUCKDB"
     
     # Local settings
     LOCAL_STORAGE_PATH: str = "data/storage"
@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     CLICKHOUSE_PORT: int = 8123
     CLICKHOUSE_USER: str = "default"
     CLICKHOUSE_PASSWORD: str = ""
+    
+    # BigQuery Settings
+    GOOGLE_APPLICATION_CREDENTIALS: str | None = None  # Path to your service_account.json
+    BQ_PROJECT_ID: str | None = None
+    BQ_DATASET_ID: str | None = None
     
     # Environment variable settings
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
