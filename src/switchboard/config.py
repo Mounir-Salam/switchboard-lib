@@ -4,7 +4,7 @@ from typing import Literal
 class Settings(BaseSettings):
     
     # Switches
-    STORAGE_TYPE: Literal["LOCAL", "MINIO", "S3"] = "LOCAL"
+    STORAGE_TYPE: Literal["LOCAL", "MINIO", "S3", "GCS"] = "LOCAL"
     DB_TYPE: Literal["DUCKDB", "POSTGRES", "CLICKHOUSE", "BIGQUERY"] = "DUCKDB"
     
     # Local settings
@@ -28,10 +28,11 @@ class Settings(BaseSettings):
     CLICKHOUSE_USER: str = "default"
     CLICKHOUSE_PASSWORD: str = ""
     
-    # BigQuery Settings
+    # BigQuery & GCS Settings
     GOOGLE_APPLICATION_CREDENTIALS: str | None = None  # Path to your service_account.json
     BQ_PROJECT_ID: str | None = None
     BQ_DATASET_ID: str | None = None
+    GCS_BUCKET_NAME: str | None = None
     
     # Environment variable settings
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

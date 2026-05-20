@@ -1,6 +1,9 @@
 from switchboard.config import settings
+
 from switchboard.connectors.blob_storage.localfs import LocalFSConnector
 from switchboard.connectors.blob_storage.minio import MinioConnector
+from switchboard.connectors.blob_storage.gcs import GCSConnector
+
 from switchboard.connectors.db_engines.duckdb import DuckDBConnector
 from switchboard.connectors.db_engines.postgres import PostgresConnector
 from switchboard.connectors.db_engines.clickhouse import ClickHouseConnector
@@ -44,6 +47,16 @@ class Switchboard:
                 secret_key=kwargs.get("secret_key") or settings.MINIO_SECRET_KEY,
                 bucket=kwargs.get("bucket") or settings.MINIO_BUCKET_NAME
             )
+        elif st_type == "GCS":
+            
+            print("[Factory Storage] Using Google Cloud Storage. Data will be stored in the specified GCS bucket.")
+            print(f"[Factory Storage] GCS Bucket Name: {kwargs.get('bucket_name') or settings.GCS_BUCKET_NAME}")
+            
+            instance = GCSConnector(
+                bucket_name=kwargs.get("bucket_name") or settings.GCS_BUCKET_NAME,
+                credentials_path=kwargs.get("credentials_path") or settings.GOOGLE_APPLICATION_CREDENTIALS
+            )
+        
         else:
             raise ValueError(f"Unsupported storage type: {st_type}")
 
