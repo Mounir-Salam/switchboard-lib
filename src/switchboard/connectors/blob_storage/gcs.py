@@ -1,6 +1,8 @@
 import os
+import structlog
 from google.cloud import storage
 from switchboard.base.storage import StorageProvider
+from switchboard.utils.resilience import cloud_retry
 
 class GCSConnector(StorageProvider):
     def __init__(self, bucket_name: str, credentials_path: str = None):
@@ -11,17 +13,23 @@ class GCSConnector(StorageProvider):
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
             
         self.client = storage.Client()
-        
-        # Following our architectural pattern: assume the bucket infrastructure is managed externally via Terraform or Console UI.
         self.bucket = self.client.bucket(self.bucket_name)
+        
+        self.logger = structlog.get_logger("switchboard.gcs").bind(
+            bucket=self.bucket_name
+        )
 
+    @cloud_retry(max_attempts=4)
     def read(self, path: str) -> bytes:
+        self.logger.info(f"Fetching blob from remote path: {path}")
         blob = self.bucket.blob(path)
         if not blob.exists():
             raise FileNotFoundError(f"The object '{path}' does not exist in bucket '{self.bucket_name}'.")
         return blob.download_as_bytes()
 
+    @cloud_retry(max_attempts=4)
     def write(self, path: str, data: any) -> None:
+        self.logger.info(f"Streaming upload to remote path: {path}")
         blob = self.bucket.blob(path)
         
         # Convert inputs to bytes if they aren't already string or raw bytes

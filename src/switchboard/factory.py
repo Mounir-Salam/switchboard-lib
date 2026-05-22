@@ -1,3 +1,5 @@
+import structlog
+
 from switchboard.config import settings
 
 from switchboard.connectors.blob_storage.localfs import LocalFSConnector
@@ -9,10 +11,13 @@ from switchboard.connectors.db_engines.postgres import PostgresConnector
 from switchboard.connectors.db_engines.clickhouse import ClickHouseConnector
 from switchboard.connectors.db_engines.bigquery import BigQueryConnector
 
+from switchboard.utils.schemas import BigQueryConfig, GCSConfig, ClickHouseConfig, PostgresConfig, MinioConfig
+
 class Switchboard:
     # Registries to hold active connections
     _storage_instances = {}
     _db_instances = {}
+    # logger = structlog.get_logger("switchboard.factory")
     
     @classmethod
     def get_storage(cls, name: str = "default", storage_type: str = None, **kwargs):
@@ -22,39 +27,69 @@ class Switchboard:
         """
         if name in cls._storage_instances:
             return cls._storage_instances[name]
+        
+        logger = structlog.get_logger("switchboard.factory")
 
         # Fallbacks to settings
-        st_type = storage_type or settings.STORAGE_TYPE
+        st_type = storage_type or settings.STORAGE_TYPE.upper()
         
         if st_type == "LOCAL":
             
-            print("[Factory Storage] Using LocalFS storage. Data will be stored on the local filesystem.")
-            print(f"[Factory Storage] Local storage path: {kwargs.get("path") or settings.LOCAL_STORAGE_PATH}")
-            
             path = kwargs.get("path") or settings.LOCAL_STORAGE_PATH
+            
+            logger.info(
+                "[Factory Storage] Using Local storage. Data will be stored on the local filesystem.",
+                provider = "Local",
+                path = path
+            )
             instance = LocalFSConnector(path)
             
         elif st_type == "MINIO":
             
-            print("[Factory Storage] Using MinIO storage. Data will be stored on the MinIO server.")
-            print(f"[Factory Storage] MinIO Endpoint: {kwargs.get('endpoint') or settings.MINIO_ENDPOINT}")
-            print(f"[Factory Storage] MinIO Access Key: {kwargs.get('access_key') or settings.MINIO_ACCESS_KEY}")
-            print(f"[Factory Storage] MinIO Bucket: {kwargs.get('bucket') or settings.MINIO_BUCKET_NAME}")
+            logger.info("[Factory Storage] Initializing storage provider", provider = "MinIO")
+
+            # Border Guard: Validate incoming arguments using our schema
+            config = MinioConfig(
+                endpoint = kwargs.get("endpoint") or settings.MINIO_ENDPOINT,
+                access_key = kwargs.get("access_key") or settings.MINIO_ACCESS_KEY,
+                secret_key = kwargs.get("secret_key") or settings.MINIO_SECRET_KEY,
+                bucket_name = kwargs.get("bucket") or settings.MINIO_BUCKET_NAME
+            )
+            
+            logger.info(
+                "[Factory Storage] Storage provider configuration validated", 
+                provider = "MinIO", 
+                endpoint = config.endpoint,
+                access_key = config.access_key,
+                bucket = config.bucket_name
+            )
             
             instance = MinioConnector(
-                endpoint=kwargs.get("endpoint") or settings.MINIO_ENDPOINT,
-                access_key=kwargs.get("access_key") or settings.MINIO_ACCESS_KEY,
-                secret_key=kwargs.get("secret_key") or settings.MINIO_SECRET_KEY,
-                bucket=kwargs.get("bucket") or settings.MINIO_BUCKET_NAME
+                endpoint = config.endpoint,
+                access_key = config.access_key,
+                secret_key = config.secret_key,
+                bucket = config.bucket_name
             )
+        
         elif st_type == "GCS":
             
-            print("[Factory Storage] Using Google Cloud Storage. Data will be stored in the specified GCS bucket.")
-            print(f"[Factory Storage] GCS Bucket Name: {kwargs.get('bucket_name') or settings.GCS_BUCKET_NAME}")
+            logger.info("[Factory Storage] Initializing storage provider", provider = "GCS")
+            
+            # Border Guard: Validate incoming arguments using our schema
+            config = GCSConfig(
+                bucket_name = kwargs.get("bucket_name") or settings.GCS_BUCKET_NAME,
+                credentials_path = kwargs.get("credentials_path") or settings.GOOGLE_APPLICATION_CREDENTIALS
+            )
+            
+            logger.info(
+                "[Factory Storage] Storage provider configuration validated", 
+                provider = "GCS", 
+                bucket = config.bucket_name
+            )
             
             instance = GCSConnector(
-                bucket_name=kwargs.get("bucket_name") or settings.GCS_BUCKET_NAME,
-                credentials_path=kwargs.get("credentials_path") or settings.GOOGLE_APPLICATION_CREDENTIALS
+                bucket_name = config.bucket_name,
+                credentials_path = config.credentials_path
             )
         
         else:
@@ -71,50 +106,90 @@ class Switchboard:
         """
         if name in cls._db_instances:
             return cls._db_instances[name]
+        
+        logger = structlog.get_logger("switchboard.factory")
 
         # Fallbacks to settings
-        engine_type = db_type or settings.DB_TYPE
+        engine_type = db_type or settings.DB_TYPE.upper()
 
         if engine_type == "DUCKDB":
             
-            print("[Factory Database] Using DuckDB. Data will be stored in a local DuckDB file.")
-            print(f"[Factory Database] DuckDB file path: {kwargs.get('connection_string') or settings.DUCKDB_PATH}")
-            
             path = kwargs.get("connection_string") or settings.DUCKDB_PATH
+            
+            logger.info(
+                "[Factory Database] Using DuckDB. Data will be stored in a local DuckDB file.",
+                provider = "DuckDB",
+                connection_string = path
+            )
+            
             instance = DuckDBConnector(path)
             
         elif engine_type == "POSTGRES":
             
-            print("[Factory Database] Using PostgreSQL. Data will be stored in the specified PostgreSQL database.")
-            print(f"[Factory Database] PostgreSQL connection string: {kwargs.get('connection_string') or settings.POSTGRES_URL}")
+            logger.info("[Factory Database] Initializing database provider", provider = "PostgreSQL")
             
-            url = kwargs.get("connection_string") or settings.POSTGRES_URL
-            instance = PostgresConnector(url)
+            # Border Guard: Validate incoming arguments using our schema
+            config = PostgresConfig(
+                connection_string = kwargs.get("connection_string") or settings.POSTGRES_URL
+            )
+            
+            logger.info(
+                "[Factory Database] Database provider configuration validated", 
+                provider = "PostgreSQL", 
+                connection_string = config.connection_string
+            )
+            
+            instance = PostgresConnector(config.connection_string)
             
         elif engine_type == "CLICKHOUSE":
             
-            print("[Factory Database] Using ClickHouse. Data will be stored in the specified ClickHouse database.")
-            print(f"[Factory Database] ClickHouse host: {kwargs.get('host') or settings.CLICKHOUSE_HOST}")
-            print(f"[Factory Database] ClickHouse port: {kwargs.get('port') or settings.CLICKHOUSE_PORT}")
-            print(f"[Factory Database] ClickHouse user: {kwargs.get('user') or settings.CLICKHOUSE_USER}")
-            
-            instance = ClickHouseConnector(
-                host=kwargs.get("host") or settings.CLICKHOUSE_HOST,
-                port=kwargs.get("port") or settings.CLICKHOUSE_PORT,
-                user=kwargs.get("user") or settings.CLICKHOUSE_USER,
-                password=kwargs.get("password") or settings.CLICKHOUSE_PASSWORD
+            logger.info("[Factory Database] Initializing database provider", provider = "ClickHouse")
+
+            # Border Guard: Validate incoming arguments using our schema
+            config = ClickHouseConfig(
+                host = kwargs.get("host") or settings.CLICKHOUSE_HOST,
+                port = kwargs.get("port") or settings.CLICKHOUSE_PORT,
+                user = kwargs.get("user") or settings.CLICKHOUSE_USER,
+                password = kwargs.get("password") or settings.CLICKHOUSE_PASSWORD
             )
             
-        elif engine_type == "BIGQUERY":            
+            logger.info(
+                "[Factory Database] Database provider configuration validated", 
+                provider = "ClickHouse", 
+                host = config.host,
+                port = config.port,
+                user = config.user
+            )
+
+            instance = ClickHouseConnector(
+                host = config.host,
+                port = config.port,
+                user = config.user,
+                password = config.password
+            )
             
-            print("[Factory Database] Using BigQuery. Data will be stored in the specified BigQuery dataset.")
-            print(f"[Factory Database] BigQuery project ID: {kwargs.get('project_id') or settings.BQ_PROJECT_ID}")
-            print(f"[Factory Database] BigQuery dataset ID: {kwargs.get('dataset_id') or settings.BQ_DATASET_ID}")
+        elif engine_type == "BIGQUERY":
             
+            logger.info("[Factory Database] Initializing database provider", provider = "BigQuery")            
+            
+            # Border Guard: Validate incoming arguments using our schema
+            config = BigQueryConfig(
+                project_id = kwargs.get("project_id") or settings.BQ_PROJECT_ID,
+                dataset_id = kwargs.get("dataset_id") or settings.BQ_DATASET_ID,
+                credentials_path = kwargs.get("credentials_path") or settings.GOOGLE_APPLICATION_CREDENTIALS
+            )
+            
+            logger.info(
+                "[Factory Database] Database provider configuration validated", 
+                provider = "BigQuery", 
+                project_id = config.project_id,
+                dataset_id = config.dataset_id
+            )
+
             instance = BigQueryConnector(
-                project_id=kwargs.get("project_id") or settings.BQ_PROJECT_ID,
-                dataset_id=kwargs.get("dataset_id") or settings.BQ_DATASET_ID,
-                credentials_path=kwargs.get("credentials_path") or settings.GOOGLE_APPLICATION_CREDENTIALS
+                project_id = config.project_id,
+                dataset_id = config.dataset_id,
+                credentials_path = config.credentials_path
             )
         else:
             raise ValueError(f"Unsupported DB type: {engine_type}")

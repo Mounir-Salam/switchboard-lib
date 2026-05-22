@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from google.cloud import bigquery
 from switchboard.base.database import DatabaseProvider
+from switchboard.utils.resilience import cloud_retry
 
 class BigQueryConnector(DatabaseProvider):
     def __init__(self, project_id: str, dataset_id: str, credentials_path: str = None):
@@ -35,6 +36,7 @@ class BigQueryConnector(DatabaseProvider):
         query_job = self.client.query(query)
         query_job.result()  # Wait for the statement to finish
 
+    @cloud_retry(max_attempts=4)
     def get_as_dataframe(self, query: str) -> pd.DataFrame:
         query_job = self.client.query(query)
         return query_job.to_dataframe()
@@ -49,9 +51,24 @@ class BigQueryConnector(DatabaseProvider):
             else bigquery.WriteDisposition.WRITE_APPEND
         )
         
-        job_config = bigquery.LoadJobConfig(
-            write_disposition=write_disposition
-        )
+        job_config = bigquery.LoadJobConfig(write_disposition=write_disposition)
         
+        # 2. Route the execution based on safety constraints
+        if mode == "replace":
+            # TRUNCATE operations are completely idempotent. 
+            # If it fails halfway and retries, it just wipes the canvas and starts over.
+            self._execute_upload_with_retry(df, table_ref, job_config)
+        else:
+            # APPEND operations are NOT safe to blindly retry.
+            # We execute it exactly once. If it fails, we let it crash so the user can investigate.
+            self._execute_upload_raw(df, table_ref, job_config)
+
+    @cloud_retry(max_attempts=4)
+    def _execute_upload_with_retry(self, df, table_ref, job_config):
+        """Internal retriable method helper."""
+        self._execute_upload_raw(df, table_ref, job_config)
+
+    def _execute_upload_raw(self, df, table_ref, job_config):
+        """Single raw attempt execution path."""
         job = self.client.load_table_from_dataframe(df, table_ref, job_config=job_config)
-        job.result()  # Block until the upload job finishes
+        job.result()
