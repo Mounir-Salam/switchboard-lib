@@ -9,13 +9,13 @@ def configure_logging(production_mode: bool = False):
     Otherwise, it outputs clean, colorized text logs for your local terminal.
     """
     # 1. Clear out any existing standard logging handlers to avoid duplicate lines
-    logging.basicConfig(handlers=[logging.StreamHandler(sys.stdout)], level=logging.INFO)
+    logging.basicConfig(handlers = [logging.StreamHandler(sys.stdout)], level = logging.INFO)
     
     # 2. Build the shared preprocessing chain
     processors = [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
-        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.TimeStamper(fmt = "iso"),
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
     ]
@@ -25,10 +25,10 @@ def configure_logging(production_mode: bool = False):
         processors.append(structlog.processors.JSONRenderer())
     else:
         # Local development output: Colorized human-readable text
-        processors.append(structlog.dev.ConsoleRenderer(colors=True, pad_level=False))
+        processors.append(structlog.dev.ConsoleRenderer(colors = True, pad_level = False))
 
     structlog.configure(
-        processors=processors,
-        logger_factory=structlog.PrintLoggerFactory(),
-        cache_logger_on_first_use=True,
+        processors = processors,
+        logger_factory = structlog.PrintLoggerFactory(),
+        cache_logger_on_first_use = True,
     )

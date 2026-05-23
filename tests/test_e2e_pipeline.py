@@ -1,8 +1,11 @@
 import pandas as pd
 import io
 from switchboard.factory import Switchboard
+from switchboard.utils.logging import configure_logging
 
-def test_minio_to_postgres_pipeline():
+def test_storage_to_database_pipeline():
+    configure_logging()
+    
     # 1. Setup the Switchboard
     storage = Switchboard.get_storage() # Will be Minio based on .env
     db = Switchboard.get_db()           # Will be Postgres based on .env
@@ -20,7 +23,7 @@ def test_minio_to_postgres_pipeline():
     df['count_plus_bonus'] = df['count'] + 100
     
     # 5. Write to Postgres (Load)
-    db.write_table(df, "processed_samples", mode="replace")
+    db.write_table(df, "processed_samples", mode = "replace")
     print("✅ Loaded transformed data into Postgres")
 
     # 6. Verify the result
@@ -30,4 +33,4 @@ def test_minio_to_postgres_pipeline():
     print("✅ E2E Pipeline Verified!")
 
 if __name__ == "__main__":
-    test_minio_to_postgres_pipeline()
+    test_storage_to_database_pipeline()

@@ -16,26 +16,29 @@ class GCSConnector(StorageProvider):
         self.bucket = self.client.bucket(self.bucket_name)
         
         self.logger = structlog.get_logger("switchboard.gcs").bind(
-            bucket=self.bucket_name
+            bucket = self.bucket_name,
+            provider = "GCS"
         )
 
-    @cloud_retry(max_attempts=4)
+    @cloud_retry(max_attempts = 4)
     def read(self, path: str) -> bytes:
-        self.logger.info(f"Fetching blob from remote path: {path}")
+        self.logger.info(f"Fetching data from path: {path}")
+        
         blob = self.bucket.blob(path)
         if not blob.exists():
             raise FileNotFoundError(f"The object '{path}' does not exist in bucket '{self.bucket_name}'.")
         return blob.download_as_bytes()
 
-    @cloud_retry(max_attempts=4)
+    @cloud_retry(max_attempts = 4)
     def write(self, path: str, data: any) -> None:
-        self.logger.info(f"Streaming upload to remote path: {path}")
+        self.logger.info(f"Writing data to path: {path}")
+        
         blob = self.bucket.blob(path)
         
         # Convert inputs to bytes if they aren't already string or raw bytes
         if isinstance(data, bytes):
-            blob.upload_from_string(data, content_type="application/octet-stream")
+            blob.upload_from_string(data, content_type = "application/octet-stream")
         elif isinstance(data, str):
-            blob.upload_from_string(data.encode("utf-8"), content_type="text/plain")
+            blob.upload_from_string(data.encode("utf-8"), content_type = "text/plain")
         else:
-            blob.upload_from_string(str(data).encode("utf-8"), content_type="text/plain")
+            blob.upload_from_string(str(data).encode("utf-8"), content_type = "text/plain")

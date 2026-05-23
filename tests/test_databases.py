@@ -6,7 +6,7 @@ def test_db_write_and_read():
     # ---------------------------------------------------------
     # 1. Test the DEFAULT Database (Uses your .env settings)
     # ---------------------------------------------------------
-    db_default = Switchboard.get_db(name="default")
+    db_default = Switchboard.get_db(name = "default")
     
     # Create sample data
     df = pd.DataFrame({"id": [1, 2], "val": ["A", "B"]})
@@ -30,9 +30,9 @@ def test_db_write_and_read():
     # ---------------------------------------------------------
     print("\n##################### Spinning up SECONDARY isolated database...")
     db_secondary = Switchboard.get_db(
-        name="isolated_analytics", 
-        db_type="DUCKDB", 
-        connection_string="./data/secondary_test.db"
+        name = "isolated_analytics", 
+        db_type = "DUCKDB", 
+        connection_string = "./data/secondary_test.db"
     )
     
     # Create different sample data

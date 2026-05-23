@@ -1,3 +1,4 @@
+import structlog
 import clickhouse_connect
 import pandas as pd
 from switchboard.base.database import DatabaseProvider
@@ -8,21 +9,31 @@ class ClickHouseConnector(DatabaseProvider):
         self.port = port
         self.user = user
         self.password = password
+        
+        self.logger = structlog.get_logger("switchboard.clickhouse").bind(
+            provider = "CLICKHOUSE"
+        )
 
     def _get_client(self):
         return clickhouse_connect.get_client(
-            host=self.host, port=self.port, username=self.user, password=self.password
+            host = self.host, port = self.port, username = self.user, password = self.password
         )
 
     def execute(self, query: str):
+        self.logger.info("Executing query")
+        
         client = self._get_client()
         client.command(query)
 
     def get_as_dataframe(self, query: str) -> pd.DataFrame:
+        self.logger.info("Generating dataframe from query")
+        
         client = self._get_client()
         return client.query_df(query)
 
     def write_table(self, df: pd.DataFrame, table_name: str, mode: str = "replace"):
+        self.logger.info("Writing table", table_name = table_name)
+        
         client = self._get_client()
         
         if mode == "replace":

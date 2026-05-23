@@ -35,6 +35,6 @@ class Settings(BaseSettings):
     GCS_BUCKET_NAME: str | None = None
     
     # Environment variable settings
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file = ".env", extra = "ignore")
 
 settings = Settings()

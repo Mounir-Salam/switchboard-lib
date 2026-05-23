@@ -17,7 +17,6 @@ class Switchboard:
     # Registries to hold active connections
     _storage_instances = {}
     _db_instances = {}
-    # logger = structlog.get_logger("switchboard.factory")
     
     @classmethod
     def get_storage(cls, name: str = "default", storage_type: str = None, **kwargs):
@@ -27,11 +26,13 @@ class Switchboard:
         """
         if name in cls._storage_instances:
             return cls._storage_instances[name]
-        
-        logger = structlog.get_logger("switchboard.factory")
 
         # Fallbacks to settings
         st_type = storage_type or settings.STORAGE_TYPE.upper()
+        
+        logger = structlog.get_logger("switchboard.factory").bind(
+            provider = st_type
+        )
         
         if st_type == "LOCAL":
             
@@ -39,14 +40,13 @@ class Switchboard:
             
             logger.info(
                 "[Factory Storage] Using Local storage. Data will be stored on the local filesystem.",
-                provider = "Local",
                 path = path
             )
             instance = LocalFSConnector(path)
             
         elif st_type == "MINIO":
             
-            logger.info("[Factory Storage] Initializing storage provider", provider = "MinIO")
+            logger.info("[Factory Storage] Initializing storage provider")
 
             # Border Guard: Validate incoming arguments using our schema
             config = MinioConfig(
@@ -58,7 +58,6 @@ class Switchboard:
             
             logger.info(
                 "[Factory Storage] Storage provider configuration validated", 
-                provider = "MinIO", 
                 endpoint = config.endpoint,
                 access_key = config.access_key,
                 bucket = config.bucket_name
@@ -68,12 +67,12 @@ class Switchboard:
                 endpoint = config.endpoint,
                 access_key = config.access_key,
                 secret_key = config.secret_key,
-                bucket = config.bucket_name
+                bucket_name = config.bucket_name
             )
         
         elif st_type == "GCS":
             
-            logger.info("[Factory Storage] Initializing storage provider", provider = "GCS")
+            logger.info("[Factory Storage] Initializing storage provider")
             
             # Border Guard: Validate incoming arguments using our schema
             config = GCSConfig(
@@ -83,7 +82,6 @@ class Switchboard:
             
             logger.info(
                 "[Factory Storage] Storage provider configuration validated", 
-                provider = "GCS", 
                 bucket = config.bucket_name
             )
             
@@ -106,11 +104,13 @@ class Switchboard:
         """
         if name in cls._db_instances:
             return cls._db_instances[name]
-        
-        logger = structlog.get_logger("switchboard.factory")
 
         # Fallbacks to settings
         engine_type = db_type or settings.DB_TYPE.upper()
+        
+        logger = structlog.get_logger("switchboard.factory").bind(
+            provider = engine_type
+        )
 
         if engine_type == "DUCKDB":
             
@@ -118,7 +118,6 @@ class Switchboard:
             
             logger.info(
                 "[Factory Database] Using DuckDB. Data will be stored in a local DuckDB file.",
-                provider = "DuckDB",
                 connection_string = path
             )
             
@@ -126,7 +125,7 @@ class Switchboard:
             
         elif engine_type == "POSTGRES":
             
-            logger.info("[Factory Database] Initializing database provider", provider = "PostgreSQL")
+            logger.info("[Factory Database] Initializing database provider")
             
             # Border Guard: Validate incoming arguments using our schema
             config = PostgresConfig(
@@ -135,7 +134,6 @@ class Switchboard:
             
             logger.info(
                 "[Factory Database] Database provider configuration validated", 
-                provider = "PostgreSQL", 
                 connection_string = config.connection_string
             )
             
@@ -143,7 +141,7 @@ class Switchboard:
             
         elif engine_type == "CLICKHOUSE":
             
-            logger.info("[Factory Database] Initializing database provider", provider = "ClickHouse")
+            logger.info("[Factory Database] Initializing database provider")
 
             # Border Guard: Validate incoming arguments using our schema
             config = ClickHouseConfig(
@@ -155,7 +153,6 @@ class Switchboard:
             
             logger.info(
                 "[Factory Database] Database provider configuration validated", 
-                provider = "ClickHouse", 
                 host = config.host,
                 port = config.port,
                 user = config.user
@@ -170,7 +167,7 @@ class Switchboard:
             
         elif engine_type == "BIGQUERY":
             
-            logger.info("[Factory Database] Initializing database provider", provider = "BigQuery")            
+            logger.info("[Factory Database] Initializing database provider")
             
             # Border Guard: Validate incoming arguments using our schema
             config = BigQueryConfig(
@@ -181,7 +178,6 @@ class Switchboard:
             
             logger.info(
                 "[Factory Database] Database provider configuration validated", 
-                provider = "BigQuery", 
                 project_id = config.project_id,
                 dataset_id = config.dataset_id
             )

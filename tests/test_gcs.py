@@ -10,7 +10,7 @@ def test_gcs_storage_pipeline():
     # 1. Test DEFAULT Connection (Targets switchboard-dev-lake via .env)
     # -------------------------------------------------------------------------
     print("\n🚀 Connecting to DEFAULT GCS Bucket...")
-    gcs_default = Switchboard.get_storage(name="default_gcs", storage_type="GCS")
+    gcs_default = Switchboard.get_storage(name = "default_gcs", storage_type = "GCS")
     
     print("Writing file to 'switchboard-dev-lake'...")
     gcs_default.write("landing/samples.csv", payload_dev)
@@ -28,9 +28,9 @@ def test_gcs_storage_pipeline():
     print("\n🚀 Connecting to SECONDARY GCS Bucket via kwargs...")
     # Passing bucket_name as a kwarg dynamically overrides our .env default
     gcs_secondary = Switchboard.get_storage(
-        name="secondary_gcs",
-        storage_type="GCS",
-        bucket_name="de-zoomcamp-484617-secondary-test-lake"
+        name = "secondary_gcs",
+        storage_type = "GCS",
+        bucket_name = "de-zoomcamp-484617-secondary-test-lake"
     )
     
     print("Writing file to 'secondary-test-lake'...")

@@ -5,14 +5,14 @@ from tenacity import RetryError
 from switchboard.utils.resilience import cloud_retry
 
 # Configure logging visibility so we can watch the retry warning triggers in real time
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level = logging.WARNING)
 
 # Let's create a dummy tracker class to simulate a real connection medium
 class FlakyService:
     def __init__(self):
         self.attempts = 0
 
-    @cloud_retry(max_attempts=3)
+    @cloud_retry(max_attempts = 3)
     def fetch_data(self, fail_until_attempt: int):
         self.attempts += 1
         print(f"\n[Execution Track] Inside fetch_data. Attempt number: {self.attempts}")
@@ -31,7 +31,7 @@ def test_successful_recovery_on_retry():
     
     # We tell it to fail on attempts 1 and 2, but succeed on attempt 3.
     # Our decorator allows up to 3 attempts, so this should recover smoothly!
-    data = service.fetch_data(fail_until_attempt=3)
+    data = service.fetch_data(fail_until_attempt = 3)
     
     assert data == b"recovered_payload_bytes"
     assert service.attempts == 3
@@ -45,7 +45,7 @@ def test_hard_failure_when_max_attempts_exceeded():
     # We tell it to fail until attempt 5. 
     # Since our max_attempts is capped at 3, it should eventually give up and raise the error.
     with pytest.raises(ConnectionError):
-        service.fetch_data(fail_until_attempt=5)
+        service.fetch_data(fail_until_attempt = 5)
         
     assert service.attempts == 3
     print("✅ System correctly threw a hard error when network limits were exceeded.")
