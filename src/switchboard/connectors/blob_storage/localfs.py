@@ -29,5 +29,8 @@ class LocalFSConnector(StorageProvider):
         if isinstance(data, str):
             full_path.write_text(data)
         else:
-            full_path.write_bytes(data)
-        print(f"✅ File written to {full_path}")
+            full_path.write_bytes(data)    
+    
+    def close(self) -> None:
+        """Placeholder for interface consistency. LocalFS doesn't maintain persistent connections."""
+        pass

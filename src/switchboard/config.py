@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 from typing import Literal
 
 class Settings(BaseSettings):
@@ -6,6 +7,20 @@ class Settings(BaseSettings):
     # Switches
     STORAGE_TYPE: Literal["LOCAL", "MINIO", "S3", "GCS"] = "LOCAL"
     DB_TYPE: Literal["DUCKDB", "POSTGRES", "CLICKHOUSE", "BIGQUERY"] = "DUCKDB"
+    
+    @field_validator("STORAGE_TYPE", mode="before")
+    @classmethod
+    def uppercase_storage_type(cls, value: str) -> str:
+        if isinstance(value, str):
+            return value.upper()
+        return value
+    
+    @field_validator("DB_TYPE", mode="before")
+    @classmethod
+    def uppercase_db_type(cls, value: str) -> str:
+        if isinstance(value, str):
+            return value.upper()
+        return value
     
     # Local settings
     LOCAL_STORAGE_PATH: str = "data/storage"

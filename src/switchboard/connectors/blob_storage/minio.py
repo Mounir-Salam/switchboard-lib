@@ -32,7 +32,8 @@ class MinioConnector(StorageProvider):
         self.logger.info(f"Fetching data from path: {path}")
         
         response = self.s3_client.get_object(Bucket = self.bucket_name, Key = path)
-        return response["Body"].read()
+        with response["Body"] as stream:
+            return stream.read()
 
     def write(self, path: str, data: any) -> None:
         self.logger.info(f"Writing data to path: {path}")
@@ -40,3 +41,13 @@ class MinioConnector(StorageProvider):
         # Boto3 expects bytes or a file-like object
         body = data if isinstance(data, bytes) else str(data).encode("utf-8")
         self.s3_client.put_object(Bucket = self.bucket_name, Key = path, Body = body)
+
+    def close(self) -> None:
+        """Safely tears down the active boto3 client network infrastructure."""
+        if hasattr(self, "s3_client") and self.s3_client is not None:
+            self.logger.info("Closing active MinIO client sessions")
+            try:
+                # Boto3 clients expose a native close function directly
+                self.s3_client.close()
+            except Exception as e:
+                self.logger.warning("Error encountered while closing MinIO client", error=str(e))

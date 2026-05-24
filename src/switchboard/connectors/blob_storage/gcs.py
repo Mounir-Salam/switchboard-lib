@@ -42,3 +42,12 @@ class GCSConnector(StorageProvider):
             blob.upload_from_string(data.encode("utf-8"), content_type = "text/plain")
         else:
             blob.upload_from_string(str(data).encode("utf-8"), content_type = "text/plain")
+    
+    def close(self) -> None:
+        """Closes the underlying HTTP transport session pooled by the GCS client."""
+        if hasattr(self, "client") and self.client is not None:
+            self.logger.info("Closing active GCS client sessions")
+            try:
+                self.client.close()
+            except Exception as e:
+                self.logger.warning("Error closing GCS client transport", error=str(e))

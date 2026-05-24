@@ -25,7 +25,7 @@ def configure_logging(production_mode: bool = False):
         processors.append(structlog.processors.JSONRenderer())
     else:
         # Local development output: Colorized human-readable text
-        processors.append(structlog.dev.ConsoleRenderer(colors = True, pad_level = False))
+        processors.append(structlog.dev.ConsoleRenderer(colors = True, pad_level = False, pad_event_to=0))
 
     structlog.configure(
         processors = processors,

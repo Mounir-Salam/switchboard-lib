@@ -32,3 +32,12 @@ class DuckDBConnector(DatabaseProvider):
         self.logger.info("Writing table", table_name = table_name)
         
         self.conn.execute(f"CREATE TABLE {table_name} AS SELECT * FROM df")
+        
+    def close(self) -> None:
+        """Closes the DuckDB connection."""
+        if hasattr(self, "conn") and self.conn is not None:
+            self.logger.info("Closing active DuckDB connection")
+            try:
+                self.conn.close()
+            except Exception as e:
+                self.logger.warning("Error encountered while closing DuckDB connection", error=str(e))

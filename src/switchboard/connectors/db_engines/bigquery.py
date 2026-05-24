@@ -85,3 +85,14 @@ class BigQueryConnector(DatabaseProvider):
         """Single raw attempt execution path."""
         job = self.client.load_table_from_dataframe(df, table_ref, job_config = job_config)
         job.result()
+        
+    def close(self) -> None:
+        """
+        Closes the underlying HTTP transport session pooled by the BigQuery client.
+        """
+        if hasattr(self, "client") and self.client is not None:
+            self.logger.info("Closing active BigQuery client transport layers")
+            try:
+                self.client.close()
+            except Exception as e:
+                self.logger.warning("Error encountered while closing BigQuery client", error=str(e))

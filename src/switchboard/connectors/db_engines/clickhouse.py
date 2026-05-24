@@ -13,31 +13,26 @@ class ClickHouseConnector(DatabaseProvider):
         self.logger = structlog.get_logger("switchboard.clickhouse").bind(
             provider = "CLICKHOUSE"
         )
-
-    def _get_client(self):
-        return clickhouse_connect.get_client(
+        
+        self.client = clickhouse_connect.get_client(
             host = self.host, port = self.port, username = self.user, password = self.password
         )
 
     def execute(self, query: str):
         self.logger.info("Executing query")
         
-        client = self._get_client()
-        client.command(query)
+        self.client.command(query)
 
     def get_as_dataframe(self, query: str) -> pd.DataFrame:
         self.logger.info("Generating dataframe from query")
         
-        client = self._get_client()
-        return client.query_df(query)
+        return self.client.query_df(query)
 
     def write_table(self, df: pd.DataFrame, table_name: str, mode: str = "replace"):
         self.logger.info("Writing table", table_name = table_name)
         
-        client = self._get_client()
-        
         if mode == "replace":
-            client.command(f"DROP TABLE IF EXISTS {table_name}")
+            self.client.command(f"DROP TABLE IF EXISTS {table_name}")
             
             # --- Map Pandas types to ClickHouse types dynamically ---
             columns = []
@@ -51,11 +46,17 @@ class ClickHouseConnector(DatabaseProvider):
                 columns.append(f"{col_name} {ch_type}")
                 
             columns_str = ", ".join(columns)
-            
-            # ClickHouse requires an ENGINE. 'MergeTree' is the standard production engine.
-            # It also requires an ORDER BY clause. We can just use 'tuple()' (no specific key) for generic inputs.
             create_query = f"CREATE TABLE {table_name} ({columns_str}) ENGINE = MergeTree() ORDER BY tuple()"
-            client.command(create_query)
+            self.client.command(create_query)
         
-        # Now that the table definitely exists, we safely insert the data!
-        client.insert_df(table_name, df)
+        self.client.insert_df(table_name, df)
+
+    # 🤝 The Context Manager Teardown Hook
+    def close(self) -> None:
+        """Explicitly drops the network session when requested."""
+        if hasattr(self, "client") and self.client is not None:
+            self.logger.info("Closing active ClickHouse network session")
+            try:
+                self.client.close()
+            except Exception as e:
+                self.logger.warning("Error encountered while closing session", error=str(e))
