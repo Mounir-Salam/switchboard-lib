@@ -1,0 +1,17 @@
+services:
+  localstack:
+    container_name: localstack_main
+    image: localstack/localstack:latest
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway (Locked to localhost for security)
+      - "127.0.0.1:4510-4559:4510-4559"  # External services port range
+    env_file:
+      - ./secrets/localstack_token.txt
+    environment:
+      - DEBUG=0
+      - SERVICES=s3,redshift             # Explicitly limit active services to save machine RAM/CPU
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - "./.localstack_data:/var/lib/localstack"  # Keeps sandbox data isolated inside a hidden project folder
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    restart: unless-stopped
