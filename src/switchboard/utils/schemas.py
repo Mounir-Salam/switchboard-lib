@@ -24,3 +24,10 @@ class MinioConfig(BaseModel):
     access_key: str = Field(..., min_length = 1, description = "MinIO access key / username")
     secret_key: str = Field(..., min_length = 1, description = "MinIO secret key / password")
     bucket_name: str = Field(..., min_length = 1, description = "MinIO bucket name")
+    
+class S3Config(BaseModel):
+    bucket_name: str = Field(..., min_length=3, max_length=63)
+    region_name: str = Field(default="us-east-1")
+    access_key_id: str = Field(...)
+    secret_access_key: str = Field(...)
+    endpoint_url: Optional[str] = Field(default=None) # Holds http://localhost:4566 for local development

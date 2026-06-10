@@ -5,13 +5,14 @@ from switchboard.config import settings
 from switchboard.connectors.blob_storage.localfs import LocalFSConnector
 from switchboard.connectors.blob_storage.minio import MinioConnector
 from switchboard.connectors.blob_storage.gcs import GCSConnector
+from switchboard.connectors.blob_storage.s3 import S3Connector
 
 from switchboard.connectors.db_engines.duckdb import DuckDBConnector
 from switchboard.connectors.db_engines.postgres import PostgresConnector
 from switchboard.connectors.db_engines.clickhouse import ClickHouseConnector
 from switchboard.connectors.db_engines.bigquery import BigQueryConnector
 
-from switchboard.utils.schemas import BigQueryConfig, GCSConfig, ClickHouseConfig, PostgresConfig, MinioConfig
+from switchboard.utils.schemas import BigQueryConfig, GCSConfig, ClickHouseConfig, PostgresConfig, MinioConfig, S3Config
 
 class Switchboard:
     # Registries to hold active connections
@@ -88,6 +89,34 @@ class Switchboard:
             instance = GCSConnector(
                 bucket_name = config.bucket_name,
                 credentials_path = config.credentials_path
+            )
+        
+        if st_type == "S3":
+            logger.info("Initializing storage provider", provider="S3")
+            
+            # Resolve arguments combining explicit kwargs and system configuration fallbacks
+            config = S3Config(
+                bucket_name=kwargs.get("bucket_name") or settings.AWS_S3_BUCKET_NAME,
+                region_name=kwargs.get("region_name") or settings.AWS_REGION,
+                access_key_id=kwargs.get("access_key_id") or settings.AWS_ACCESS_KEY_ID,
+                secret_access_key=kwargs.get("secret_access_key") or settings.AWS_SECRET_ACCESS_KEY,
+                endpoint_url=kwargs.get("endpoint_url") or settings.AWS_ENDPOINT_URL
+            )
+            
+            logger.info(
+                "Storage provider configuration validated",
+                provider="S3",
+                bucket=config.bucket_name,
+                region=config.region_name,
+                using_custom_endpoint=bool(config.endpoint_url)
+            )
+            
+            instance = S3Connector(
+                bucket_name=config.bucket_name,
+                access_key=config.access_key_id,
+                secret_key=config.secret_access_key,
+                region=config.region_name,
+                endpoint_url=config.endpoint_url
             )
         
         else:

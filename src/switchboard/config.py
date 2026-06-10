@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 from typing import Literal
+from typing import Optional
 
 class Settings(BaseSettings):
     
@@ -30,6 +31,12 @@ class Settings(BaseSettings):
     MINIO_ACCESS_KEY: str = "minioadmin"
     MINIO_SECRET_KEY: str = "minioadmin123"
     MINIO_BUCKET_NAME: str = "switchboard-bucket"
+    
+    AWS_ACCESS_KEY_ID: str = "mock_sandbox_key"
+    AWS_SECRET_ACCESS_KEY: str = "mock_sandbox_secret"
+    AWS_REGION: str = "us-east-1"
+    AWS_S3_BUCKET_NAME: str = "switchboard-local-lake"
+    AWS_ENDPOINT_URL: Optional[str] = None  # Crucial for routing to Docker!
     
     # DuckDB settings
     DUCKDB_PATH: str = "data/main.db"
