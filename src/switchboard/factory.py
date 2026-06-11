@@ -11,8 +11,9 @@ from switchboard.connectors.db_engines.duckdb import DuckDBConnector
 from switchboard.connectors.db_engines.postgres import PostgresConnector
 from switchboard.connectors.db_engines.clickhouse import ClickHouseConnector
 from switchboard.connectors.db_engines.bigquery import BigQueryConnector
+from switchboard.connectors.db_engines.redshift import RedshiftConnector
 
-from switchboard.utils.schemas import BigQueryConfig, GCSConfig, ClickHouseConfig, PostgresConfig, MinioConfig, S3Config
+from switchboard.utils.schemas import BigQueryConfig, GCSConfig, ClickHouseConfig, PostgresConfig, MinioConfig, S3Config, RedshiftConfig
 
 class Switchboard:
     # Registries to hold active connections
@@ -92,31 +93,31 @@ class Switchboard:
             )
         
         if st_type == "S3":
-            logger.info("Initializing storage provider", provider="S3")
+            logger.info("Initializing storage provider", provider = "S3")
             
             # Resolve arguments combining explicit kwargs and system configuration fallbacks
             config = S3Config(
-                bucket_name=kwargs.get("bucket_name") or settings.AWS_S3_BUCKET_NAME,
-                region_name=kwargs.get("region_name") or settings.AWS_REGION,
-                access_key_id=kwargs.get("access_key_id") or settings.AWS_ACCESS_KEY_ID,
-                secret_access_key=kwargs.get("secret_access_key") or settings.AWS_SECRET_ACCESS_KEY,
-                endpoint_url=kwargs.get("endpoint_url") or settings.AWS_ENDPOINT_URL
+                bucket_name = kwargs.get("bucket_name") or settings.AWS_S3_BUCKET_NAME,
+                region_name = kwargs.get("region_name") or settings.AWS_REGION,
+                access_key_id = kwargs.get("access_key_id") or settings.AWS_ACCESS_KEY_ID,
+                secret_access_key = kwargs.get("secret_access_key") or settings.AWS_SECRET_ACCESS_KEY,
+                endpoint_url = kwargs.get("endpoint_url") or settings.AWS_ENDPOINT_URL
             )
             
             logger.info(
                 "Storage provider configuration validated",
-                provider="S3",
-                bucket=config.bucket_name,
-                region=config.region_name,
-                using_custom_endpoint=bool(config.endpoint_url)
+                provider = "S3",
+                bucket = config.bucket_name,
+                region = config.region_name,
+                using_custom_endpoint = bool(config.endpoint_url)
             )
             
             instance = S3Connector(
-                bucket_name=config.bucket_name,
-                access_key=config.access_key_id,
-                secret_key=config.secret_access_key,
-                region=config.region_name,
-                endpoint_url=config.endpoint_url
+                bucket_name = config.bucket_name,
+                access_key = config.access_key_id,
+                secret_key = config.secret_access_key,
+                region = config.region_name,
+                endpoint_url = config.endpoint_url
             )
         
         else:
@@ -216,6 +217,34 @@ class Switchboard:
                 dataset_id = config.dataset_id,
                 credentials_path = config.credentials_path
             )
+        
+        elif engine_type == "REDSHIFT":
+            logger.info("Initializing database provider", provider = "REDSHIFT")
+            
+            # Run parameters through our Pydantic border checkpoint
+            config = RedshiftConfig(
+                host = kwargs.get("host") or settings.REDSHIFT_HOST,
+                port = kwargs.get("port") or settings.REDSHIFT_PORT,
+                database = kwargs.get("database") or settings.REDSHIFT_DATABASE,
+                username = kwargs.get("username") or settings.REDSHIFT_USER,
+                password = kwargs.get("password") or settings.REDSHIFT_PASSWORD
+            )
+            
+            logger.info(
+                "Database provider configuration validated",
+                provider = "REDSHIFT",
+                target_host = config.host,
+                target_db = config.database
+            )
+            
+            instance = RedshiftConnector(
+                host = config.host,
+                port = config.port,
+                database = config.database,
+                username = config.username,
+                password = config.password
+            )
+        
         else:
             raise ValueError(f"Unsupported DB type: {engine_type}")
 

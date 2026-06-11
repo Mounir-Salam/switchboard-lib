@@ -7,16 +7,16 @@ class Settings(BaseSettings):
     
     # Switches
     STORAGE_TYPE: Literal["LOCAL", "MINIO", "S3", "GCS"] = "LOCAL"
-    DB_TYPE: Literal["DUCKDB", "POSTGRES", "CLICKHOUSE", "BIGQUERY"] = "DUCKDB"
+    DB_TYPE: Literal["DUCKDB", "POSTGRES", "CLICKHOUSE", "BIGQUERY", "REDSHIFT"] = "DUCKDB"
     
-    @field_validator("STORAGE_TYPE", mode="before")
+    @field_validator("STORAGE_TYPE", mode = "before")
     @classmethod
     def uppercase_storage_type(cls, value: str) -> str:
         if isinstance(value, str):
             return value.upper()
         return value
     
-    @field_validator("DB_TYPE", mode="before")
+    @field_validator("DB_TYPE", mode = "before")
     @classmethod
     def uppercase_db_type(cls, value: str) -> str:
         if isinstance(value, str):
@@ -26,12 +26,13 @@ class Settings(BaseSettings):
     # Local settings
     LOCAL_STORAGE_PATH: str = "data/storage"
     
-    # MinIO / S3 Settings
+    # MinIO Settings
     MINIO_ENDPOINT: str = "http://localhost:9000"
     MINIO_ACCESS_KEY: str = "minioadmin"
     MINIO_SECRET_KEY: str = "minioadmin123"
     MINIO_BUCKET_NAME: str = "switchboard-bucket"
     
+    # AWS S3 Settings
     AWS_ACCESS_KEY_ID: str = "mock_sandbox_key"
     AWS_SECRET_ACCESS_KEY: str = "mock_sandbox_secret"
     AWS_REGION: str = "us-east-1"
@@ -55,6 +56,13 @@ class Settings(BaseSettings):
     BQ_PROJECT_ID: str | None = None
     BQ_DATASET_ID: str | None = None
     GCS_BUCKET_NAME: str | None = None
+    
+    # AWS Redshift settings
+    REDSHIFT_HOST: str = "localhost"
+    REDSHIFT_PORT: int = 5439
+    REDSHIFT_DATABASE: str = "dev"
+    REDSHIFT_USER: str = "awsuser"
+    REDSHIFT_PASSWORD: str = "password"
     
     # Environment variable settings
     model_config = SettingsConfigDict(env_file = ".env", extra = "ignore")

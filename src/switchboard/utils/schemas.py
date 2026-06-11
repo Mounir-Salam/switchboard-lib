@@ -26,8 +26,18 @@ class MinioConfig(BaseModel):
     bucket_name: str = Field(..., min_length = 1, description = "MinIO bucket name")
     
 class S3Config(BaseModel):
-    bucket_name: str = Field(..., min_length=3, max_length=63)
-    region_name: str = Field(default="us-east-1")
+    bucket_name: str = Field(..., min_length = 3, max_length = 63)
+    region_name: str = Field(default = "us-east-1")
     access_key_id: str = Field(...)
     secret_access_key: str = Field(...)
-    endpoint_url: Optional[str] = Field(default=None) # Holds http://localhost:4566 for local development
+    endpoint_url: Optional[str] = Field(default = None) # Holds http://localhost:4566 for local development
+
+class RedshiftConfig(BaseModel):
+    host: str = Field(..., min_length = 1)
+    port: int = Field(default = 5439)  # Default Amazon Redshift port
+    database: str = Field(..., min_length = 1)
+    username: str = Field(..., min_length = 1)
+    password: str = Field(..., min_length = 1)
+    
+    # Optional parameters for cluster or dev environments (like LocalStack or mock testing)
+    endpoint_url: Optional[str] = Field(default = None)
