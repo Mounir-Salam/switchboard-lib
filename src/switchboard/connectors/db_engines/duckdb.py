@@ -40,4 +40,4 @@ class DuckDBConnector(DatabaseProvider):
             try:
                 self.conn.close()
             except Exception as e:
-                self.logger.warning("Error encountered while closing DuckDB connection", error=str(e))
+                self.logger.warning("Error encountered while closing DuckDB connection", error = str(e))

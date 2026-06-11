@@ -50,4 +50,4 @@ class MinioConnector(StorageProvider):
                 # Boto3 clients expose a native close function directly
                 self.s3_client.close()
             except Exception as e:
-                self.logger.warning("Error encountered while closing MinIO client", error=str(e))
+                self.logger.warning("Error encountered while closing MinIO client", error = str(e))

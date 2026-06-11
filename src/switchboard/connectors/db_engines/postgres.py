@@ -39,4 +39,4 @@ class PostgresConnector(DatabaseProvider):
                 self.connection.close()
                 self.engine.dispose() # Tethers off the global background pool completely
             except Exception as e:
-                self.logger.warning("Error encountered while disposing engine", error=str(e))
+                self.logger.warning("Error encountered while disposing engine", error = str(e))

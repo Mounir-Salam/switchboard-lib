@@ -95,4 +95,4 @@ class BigQueryConnector(DatabaseProvider):
             try:
                 self.client.close()
             except Exception as e:
-                self.logger.warning("Error encountered while closing BigQuery client", error=str(e))
+                self.logger.warning("Error encountered while closing BigQuery client", error = str(e))

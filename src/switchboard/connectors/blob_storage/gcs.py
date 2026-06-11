@@ -50,4 +50,4 @@ class GCSConnector(StorageProvider):
             try:
                 self.client.close()
             except Exception as e:
-                self.logger.warning("Error closing GCS client transport", error=str(e))
+                self.logger.warning("Error closing GCS client transport", error = str(e))

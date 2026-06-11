@@ -59,4 +59,4 @@ class ClickHouseConnector(DatabaseProvider):
             try:
                 self.client.close()
             except Exception as e:
-                self.logger.warning("Error encountered while closing session", error=str(e))
+                self.logger.warning("Error encountered while closing session", error = str(e))

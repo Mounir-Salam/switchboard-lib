@@ -34,19 +34,19 @@ class S3Connector(StorageProvider):
         - Production Mode (Real AWS): Strictly errors out if infrastructure isn't provisioned.
         """
         try:
-            self.s3_client.head_bucket(Bucket=self.bucket_name)
+            self.s3_client.head_bucket(Bucket = self.bucket_name)
         except Exception:
             if self.is_local:
-                self.logger.info("Local sandbox bucket not found. Initializing mock infrastructure", target_bucket=self.bucket_name)
+                self.logger.info("Local sandbox bucket not found. Initializing mock infrastructure", target_bucket = self.bucket_name)
                 try:
-                    self.s3_client.create_bucket(Bucket=self.bucket_name)
+                    self.s3_client.create_bucket(Bucket = self.bucket_name)
                 except Exception as e:
-                    self.logger.error("Failed to automatically initialize local bucket", error=str(e))
+                    self.logger.error("Failed to automatically initialize local bucket", error = str(e))
                     raise
             else:
                 self.logger.error(
                     "Target bucket does not exist. Production infrastructure must be provisioned via Terraform or AWS Console.",
-                    target_bucket=self.bucket_name
+                    target_bucket = self.bucket_name
                 )
                 raise FileNotFoundError(
                     f"The AWS S3 bucket '{self.bucket_name}' could not be reached or does not exist. "
