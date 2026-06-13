@@ -55,7 +55,7 @@ class Switchboard:
                 endpoint = kwargs.get("endpoint") or settings.MINIO_ENDPOINT,
                 access_key = kwargs.get("access_key") or settings.MINIO_ACCESS_KEY,
                 secret_key = kwargs.get("secret_key") or settings.MINIO_SECRET_KEY,
-                bucket_name = kwargs.get("bucket") or settings.MINIO_BUCKET_NAME
+                bucket_name = kwargs.get("bucket_name") or settings.MINIO_BUCKET_NAME
             )
             
             logger.info(
@@ -99,8 +99,8 @@ class Switchboard:
             config = S3Config(
                 bucket_name = kwargs.get("bucket_name") or settings.AWS_S3_BUCKET_NAME,
                 region_name = kwargs.get("region_name") or settings.AWS_REGION,
-                access_key_id = kwargs.get("access_key_id") or settings.AWS_ACCESS_KEY_ID,
-                secret_access_key = kwargs.get("secret_access_key") or settings.AWS_SECRET_ACCESS_KEY,
+                access_key_id = kwargs.get("access_key") or settings.AWS_ACCESS_KEY_ID,
+                secret_access_key = kwargs.get("secret_key") or settings.AWS_SECRET_ACCESS_KEY,
                 endpoint_url = kwargs.get("endpoint_url") or settings.AWS_ENDPOINT_URL
             )
             
@@ -177,7 +177,7 @@ class Switchboard:
             config = ClickHouseConfig(
                 host = kwargs.get("host") or settings.CLICKHOUSE_HOST,
                 port = kwargs.get("port") or settings.CLICKHOUSE_PORT,
-                user = kwargs.get("user") or settings.CLICKHOUSE_USER,
+                user = kwargs.get("username") or settings.CLICKHOUSE_USER,
                 password = kwargs.get("password") or settings.CLICKHOUSE_PASSWORD
             )
             
