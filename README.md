@@ -26,10 +26,11 @@ The library is split into two foundational layers: **Blob Storage Providers** an
             |                                                 |
             v                                                 v
    [ Storage Providers ]                             [ Database Providers ]
-   |-- Local File System                             |-- PostgreSQL (Local Mirror)
-   |-- Google Cloud Storage (GCS)                    |-- Google BigQuery
-   |-- AWS S3 / LocalStack                           |-- AWS Redshift
-                                                     |-- ClickHouse
+   |-- Local File System                             |-- DuckDB
+   |-- MinIO (S3-Compatible)                         |-- PostgreSQL (Local Mirror)
+   |-- Google Cloud Storage (GCS)                    |-- ClickHouse
+   |-- AWS S3 / LocalStack                           |-- BigQuery
+                                                     |-- AWS Redshift
 ```
 
 ## How it works
