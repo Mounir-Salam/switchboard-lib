@@ -92,7 +92,7 @@ class Switchboard:
                 credentials_path = config.credentials_path
             )
         
-        if st_type == "S3":
+        elif st_type == "S3":
             logger.info("Initializing storage provider", provider = "S3")
             
             # Resolve arguments combining explicit kwargs and system configuration fallbacks
