@@ -41,10 +41,10 @@ The `Switchboard` factory reads `STORAGE_TYPE` and `DB_TYPE` from your `.env` fi
 
 ## Quick start
 
-Copy `.sample.env` to `.env` and leave the defaults — this gives you local file storage and a local DuckDB database, no Docker needed.
+Install the package; Then refer to [.env Reference](#full-env-reference) below to configure your desired resources.
 
 ```bash
-cp .sample.env .env
+uv add git+https://github.com/Mounir-Salam/switchboard-lib.git
 ```
 
 ```python
