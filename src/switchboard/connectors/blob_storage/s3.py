@@ -59,7 +59,6 @@ class S3Connector(StorageProvider):
         
         try:
             response = self.s3_client.get_object(Bucket = self.bucket_name, Key = path)
-            # 🤝 Pillar 4: Safe stream context tracking releases network handles instantly
             with response["Body"] as stream:
                 return stream.read()
         except self.s3_client.exceptions.NoSuchKey:

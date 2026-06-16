@@ -27,9 +27,12 @@ class LocalFSConnector(StorageProvider):
         self.logger.info(f"Writing data to path: {full_path}")
         
         if isinstance(data, str):
-            full_path.write_text(data)
+            full_path.write_text(data, encoding="utf-8")
+        elif isinstance(data, bytes):
+            full_path.write_bytes(data)
         else:
-            full_path.write_bytes(data)    
+            encoded_data = str(data).encode("utf-8")
+            full_path.write_bytes(encoded_data)
     
     def close(self) -> None:
         """Placeholder for interface consistency. LocalFS doesn't maintain persistent connections."""
